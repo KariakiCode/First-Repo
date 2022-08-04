@@ -1,102 +1,76 @@
 import random
-board = ['-', '-', '-', 
-        '-', '-', '-',
-        '-', '-', '-']
+import numpy as np
+from app import words
 
-currentPlayer = 'X'
-winner = None
-gameRunning = True
+#get_word
+#hangman
+# ------ which is the length of the word
+#each guess letter have an index in the word so append it in the line index
 
-def printBoard(board):
-    print(board[0] + ' | ' + board[1] + ' | ' + board[2])
-    print('-----------')
-    print(board[3] + ' | ' + board[4] + ' | ' + board[5])
-    print('-----------')
-    print(board[6] + ' | ' + board[7] + ' | ' + board[8])
+def get_word():
+    word = random.choice(words)
+    return word
 
-#computer
-def computer(board):
-    position = random.randint(0, 8)
-    if board[position] == '-':
-        board[position] = 'O'
-        switchPlayer()
+def list_duplicates_of(seq,item):
+    start_at = -1
+    locs = []
+    while True:
+        try:
+            loc = seq.index(item,start_at+1)
+        except ValueError:
+            break
+        else:
+            locs.append(loc)
+            start_at = loc
+    return locs
 
+def hangman():
+    used_letters = []
+    guess_word = get_word()
+    print(guess_word)
+    word_list = list(guess_word)
+    guess_line = ['-' for i in range(len(guess_word))]
+    new_line = np.array(guess_line)
+    print(' '.join(new_line))
+    bool = True
+    limit = 5
+    while bool and limit != 0:
+        player = input('Enter a letter  ')
+        if len(player) > 1:
+            print('invalid input try again: ')
+            continue
+        else:
+            if player not in word_list:
+                limit = limit - 1
+                print(f'live remaining {limit}')
+                if player in used_letters:
+                    print('already used that letter')
+                    continue
+                used_letters.append(player)
+                print('used_letters: ', used_letters)
+            if player in word_list:
+                if player in used_letters:
+                    print('already used that letter')
+                    continue
+                data = guess_word.index(player)
+                main_data = list_duplicates_of(guess_word, player)
+                new_line[main_data] = player
+                print(' '.join(new_line))
+            if list(new_line) == word_list:
+                bool = False
+    if limit == 0:
+        print('you did not guess the word')
+        playagain()
+    print('\n')
+    print('you guessed the word:', ''.join(new_line))
 
-def playerInput(board):
-    inp = int(input('Enter a number 1-9: '))
-    if (inp >= 1 <= 9) and board[inp - 1] == '-':
-        board[inp-1] = currentPlayer
-    else:
-        print('oops player is already in that spot!')
+def playagain():
+    divInput = input('play again? Y/N: ').lower()
+    if divInput == 'y':
+        hangman()
+    elif divInput == 'n':
+        quit()
 
-def checkHorizontal(board):
-    global winner
-    if board[0] == board[1] == board[2] and board[1] != '-':
-        winner = board[0]
-        return True
-
-    elif board[3] == board[4] == board[5] and board[3] != '-':
-        winner = board[3]
-        return True
-
-    elif board[6] == board[7] == board[8] and board[6] != '-':
-        winner = board[6]
-        return True
-
-def checkRow(board):
-    global winner
-    if board[0] == board[3]== board[6] and board[0] != '-':
-        winner = board[0]
-        return True
-    
-    elif board[1] == board[4] == board[7] and board[1] != '-':
-        winner = board[0]
-        return True
-    elif board[2] == board[5] == board[8] and board[2] != '-':
-        winner = board[2]
-        return True
-
-
-def checkDiag(board):
-    global winner
-    if board[0] == board[4] == board[8] and board[0] != '-':
-        winner = board[0]
-        return True
-    
-    elif board[2] == board[4] == board[6] and board[2] != '-':
-        winner = board[2]
-        return True
-    
-def checkTie(board):
-    global gameRunning
-    if '-' not in board:
-        printBoard(board)
-        print('it is a tie!')
-        gameRunning = False
-
-def switchPlayer():
-    global currentPlayer
-    if currentPlayer == 'X':
-        currentPlayer = 'O'
-    else:
-        currentPlayer = 'X'
-
-def checkWin():
-    global gameRunning
-    if checkDiag(board) or checkHorizontal(board) or checkRow(board):
-        print(f'The winner is {winner}')
-        gameRunning = False
-
-while gameRunning:
-    printBoard(board)
-
-    playerInput(board)
-    checkWin()
-    checkTie(board)
-    switchPlayer()
-    computer(board)
-    checkWin()
-    checkTie(board)
+hangman()
 
 
-printBoard(board)
